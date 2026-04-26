@@ -28,14 +28,18 @@ You can find the latest development version continuously deployed to
 
 ## Fork Changes
 
-This fork requires authenticated Matrix accounts and uses Matrix Authentication
-Service (MAS) delegated authentication for standalone access.
+This fork requires authenticated Matrix accounts for standalone access. The
+primary sign-in path uses Matrix Authentication Service (MAS) delegated
+authentication on `fob.wtf`, while a secondary path lets users sign in with a
+different Matrix server.
 
 - Guest and passwordless access are disabled. Stored passwordless sessions are
   cleared instead of being restored.
-- The standalone `/login` and `/register` pages have been removed. Those routes
-  now start the MAS/OIDC authorization flow; registration requests pass the MAS
-  account-creation prompt.
+- The standalone `/login` and `/register` routes show a sign-in chooser. Users
+  can continue with `fob.wtf` MAS or enter another Matrix server name.
+- Custom server sign-in uses MAS/OIDC when the server advertises delegated
+  authentication, otherwise it falls back to Matrix password login when
+  available.
 - MAS callback handling stores the Matrix access token together with OIDC
   refresh metadata, refreshes delegated-auth sessions through the Matrix JS SDK,
   and revokes OIDC tokens during logout when the issuer advertises revocation.

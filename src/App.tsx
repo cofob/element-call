@@ -19,7 +19,7 @@ import { TooltipProvider } from "@vector-im/compound-web";
 import { logger } from "matrix-js-sdk/lib/logger";
 
 import { HomePage } from "./home/HomePage";
-import { MasRedirectPage } from "./auth/MasRedirectPage";
+import { LoginPage } from "./auth/LoginPage";
 import { RoomPage } from "./room/RoomPage";
 import { ClientProvider } from "./ClientContext";
 import { ErrorPage, LoadingPage } from "./FullScreenView";
@@ -84,14 +84,8 @@ export const App: FC<Props> = ({ vm }) => {
           >
             <Routes>
               <SentryRoute path="/" element={<HomePage />} />
-              <SentryRoute
-                path="/login"
-                element={<MasRedirectPage action="login" />}
-              />
-              <SentryRoute
-                path="/register"
-                element={<MasRedirectPage action="register" />}
-              />
+              <SentryRoute path="/login" element={<LoginPage />} />
+              <SentryRoute path="/register" element={<LoginPage />} />
               <SentryRoute path="*" element={<RoomPage />} />
             </Routes>
           </Sentry.ErrorBoundary>

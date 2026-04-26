@@ -17,6 +17,7 @@ import {
 import { type MatrixError } from "matrix-js-sdk";
 import { logger } from "matrix-js-sdk/lib/logger";
 import { Trans, useTranslation } from "react-i18next";
+import { Navigate, useLocation } from "react-router-dom";
 import {
   CheckIcon,
   UnknownSolidIcon,
@@ -39,12 +40,12 @@ import { useMediaDevices } from "../MediaDevicesContext";
 import { MuteStates } from "../state/MuteStates";
 import { ObservableScope } from "../state/ObservableScope";
 import { calculateInitialMuteState } from "../state/initialMuteState.ts";
-import { MasRedirectPage } from "../auth/MasRedirectPage";
 
 export const RoomPage: FC = (): ReactNode => {
   const urlParams = useUrlParams();
   const { confineToRoom, preload, header, skipLobby } = urlParams;
   const { t } = useTranslation();
+  const location = useLocation();
   const { roomAlias, roomId, viaServers } = useRoomIdentifier();
 
   const roomIdOrAlias = roomId ?? roomAlias;
@@ -213,7 +214,8 @@ export const RoomPage: FC = (): ReactNode => {
 
   if (loading) return <LoadingPage />;
   if (error) return <ErrorPage widget={widget} error={error} />;
-  if (!client) return <MasRedirectPage action="login" />;
+  if (!client)
+    return <Navigate to="/login" state={{ from: location }} replace />;
   // TODO: This doesn't belong here, the app routes need to be reworked
   if (!roomIdOrAlias) return <HomePage />;
   return groupCallView();

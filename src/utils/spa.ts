@@ -39,11 +39,12 @@ export async function initSPA(
       user_id,
       device_id,
       access_token,
+      homeserver_url,
       passwordlessUser,
       refresh_token,
     } = session;
     const initClientParams: ICreateClientOpts = {
-      baseUrl: Config.defaultHomeserverUrl()!,
+      baseUrl: homeserver_url ?? Config.defaultHomeserverUrl()!,
       accessToken: access_token,
       refreshToken: refresh_token,
       userId: user_id,

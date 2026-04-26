@@ -29,6 +29,12 @@ const RETURN_URL_STORAGE_KEY = "element-call-oidc-return-url";
 
 export type MasAuthAction = "login" | "register";
 
+export interface StartMasAuthOptions {
+  homeserverUrl?: string;
+  delegatedAuthConfig?: OidcClientConfig;
+  redirect?: (url: string) => void;
+}
+
 type ResponseMode = "fragment" | "query";
 
 interface CallbackParams {
@@ -74,9 +80,22 @@ export function hasMasCallbackParams(url: Location = window.location): boolean {
 export async function startMasAuth(
   action: MasAuthAction,
   returnUrl: string,
-  redirect: (url: string) => void = (url) => window.location.assign(url),
+  optionsOrRedirect: StartMasAuthOptions | ((url: string) => void) = {},
 ): Promise<void> {
-  const delegatedAuthConfig = await getDelegatedAuthConfig();
+  const options =
+    typeof optionsOrRedirect === "function"
+      ? { redirect: optionsOrRedirect }
+      : optionsOrRedirect;
+  const redirect =
+    options.redirect ?? ((url: string): void => window.location.assign(url));
+  const homeserverUrl = options.homeserverUrl ?? Config.defaultHomeserverUrl();
+  if (!homeserverUrl) {
+    throw new Error("No homeserver is configured.");
+  }
+
+  const delegatedAuthConfig =
+    options.delegatedAuthConfig ??
+    (await getDelegatedAuthConfig(homeserverUrl));
   const clientId = await getOidcClientId(delegatedAuthConfig);
   const redirectUri = getOidcCallbackUrl().href;
   const responseMode = delegatedAuthConfig.response_modes_supported?.includes(
@@ -91,7 +110,7 @@ export async function startMasAuth(
     metadata: delegatedAuthConfig,
     redirectUri,
     clientId,
-    homeserverUrl: Config.defaultHomeserverUrl()!,
+    homeserverUrl,
     nonce: secureRandomString(10),
     prompt: action === "register" ? "create" : undefined,
     responseMode,
@@ -139,6 +158,7 @@ export async function completeMasLoginFromUrl(
     user_id: whoami.user_id,
     device_id: whoami.device_id,
     access_token: tokenResponse.access_token,
+    homeserver_url: homeserverUrl,
     refresh_token: tokenResponse.refresh_token,
     id_token: tokenResponse.id_token,
     oidc_client_id: oidcClientSettings.clientId,
@@ -224,12 +244,9 @@ export async function revokeOidcSession(session?: Session): Promise<void> {
   }
 }
 
-async function getDelegatedAuthConfig(): Promise<OidcClientConfig> {
-  const homeserverUrl = Config.defaultHomeserverUrl();
-  if (!homeserverUrl) {
-    throw new Error("No default homeserver is configured.");
-  }
-
+async function getDelegatedAuthConfig(
+  homeserverUrl: string,
+): Promise<OidcClientConfig> {
   const client = createClient({ baseUrl: homeserverUrl });
   try {
     return await client.getAuthMetadata();

@@ -394,6 +394,8 @@ export interface Session {
   user_id: string;
   device_id?: string;
   access_token: string;
+  homeserver_url?: string;
+  server_name?: string;
   passwordlessUser: boolean;
   refresh_token?: string;
   id_token?: string;

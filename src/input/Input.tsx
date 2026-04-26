@@ -76,6 +76,7 @@ interface InputFieldProps {
   placeholder?: string;
   defaultChecked?: boolean;
   min?: number;
+  "data-testid"?: string;
   onChange?: (event: ChangeEvent<HTMLInputElement>) => void;
 }
 

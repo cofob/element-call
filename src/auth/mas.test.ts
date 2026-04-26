@@ -184,6 +184,7 @@ describe("MAS auth", () => {
       user_id: "@alice:example.org",
       device_id: "DEVICE",
       access_token: "access-token",
+      homeserver_url: "https://matrix.example.org",
       refresh_token: "refresh-token",
       id_token: "id-token",
       oidc_client_id: "client-id",

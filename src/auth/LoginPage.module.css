@@ -1,0 +1,41 @@
+/*
+Copyright 2026 New Vector Ltd.
+
+SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE in the repository root for full details.
+*/
+
+.content {
+  width: min(100%, 420px);
+  padding: 0 24px;
+}
+
+.headline {
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.body {
+  margin-bottom: 32px;
+  color: var(--cpd-color-text-secondary);
+  text-align: center;
+}
+
+.actions,
+.form {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form {
+  padding: 0;
+}
+
+.form > * + * {
+  margin-bottom: 24px;
+}

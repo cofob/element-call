@@ -7,19 +7,20 @@ Please see LICENSE in the repository root for full details.
 
 import { useTranslation } from "react-i18next";
 import { type FC } from "react";
+import { Navigate, useLocation } from "react-router-dom";
 
 import { useClientState } from "../ClientContext";
 import { ErrorPage, LoadingPage } from "../FullScreenView";
 import { RegisteredView } from "./RegisteredView";
 import { usePageTitle } from "../usePageTitle";
 import { widget } from "../widget.ts";
-import { MasRedirectPage } from "../auth/MasRedirectPage";
 
 export const HomePage: FC = () => {
   const { t } = useTranslation();
   usePageTitle(t("common.home"));
 
   const clientState = useClientState();
+  const location = useLocation();
 
   if (!clientState) {
     return <LoadingPage />;
@@ -29,7 +30,7 @@ export const HomePage: FC = () => {
     return clientState.authenticated ? (
       <RegisteredView client={clientState.authenticated.client} />
     ) : (
-      <MasRedirectPage action="login" />
+      <Navigate to="/login" state={{ from: location }} replace />
     );
   }
 };
