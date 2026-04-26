@@ -193,10 +193,18 @@ export function useGroupCallRooms(client: MatrixClient): GroupCallRoom[] {
       MatrixRTCSessionManagerEvents.SessionStarted,
       updateRooms,
     );
+    client.matrixRTC.on(
+      MatrixRTCSessionManagerEvents.SessionEnded,
+      updateRooms,
+    );
     client.on(RoomEvent.MyMembership, updateRooms);
     return (): void => {
       client.matrixRTC.off(
         MatrixRTCSessionManagerEvents.SessionStarted,
+        updateRooms,
+      );
+      client.matrixRTC.off(
+        MatrixRTCSessionManagerEvents.SessionEnded,
         updateRooms,
       );
       client.off(RoomEvent.MyMembership, updateRooms);

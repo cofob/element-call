@@ -5,9 +5,12 @@
   "action": {
     "close": "Close",
     "copy_link": "Copy link",
+    "answer": "Answer",
     "edit": "Edit",
     "go": "Go",
     "invite": "Invite",
+    "decline": "Decline",
+    "dismiss": "Dismiss",
     "lower_hand": "Lower hand",
     "no": "No",
     "pick_reaction": "Pick reaction",
@@ -33,6 +36,15 @@
     "survey_prompt": "How did it go?"
   },
   "call_name": "Name of call",
+  "call_popups": {
+    "current_title": "Current call",
+    "incoming_from": "From {{name}}",
+    "incoming_title": "Incoming call",
+    "join": "Join",
+    "label": "Call notifications",
+    "participants_one": "{{count, number}} participant",
+    "participants_other": "{{count, number}} participants"
+  },
   "common": {
     "analytics": "Analytics",
     "audio": "Audio",

@@ -38,6 +38,7 @@ import { AnalyticsNotice } from "../analytics/AnalyticsNotice";
 import { E2eeType } from "../e2ee/e2eeType";
 import { useOptInAnalytics } from "../settings/settings";
 import { useUrlParams } from "../UrlParams";
+import { CallPopups } from "./CallPopups";
 
 interface Props {
   client: MatrixClient;
@@ -105,6 +106,9 @@ export const RegisteredView: FC<Props> = ({ client }) => {
   );
 
   const recentRooms = useGroupCallRooms(client);
+  const currentRooms = recentRooms.filter(
+    (room) => room.session.memberships.length > 0,
+  );
 
   const [existingAlias, setExistingAlias] = useState<string>();
   const onJoinExistingRoom = useCallback(() => {
@@ -175,6 +179,7 @@ export const RegisteredView: FC<Props> = ({ client }) => {
         open={joinExistingCallModalOpen}
         onDismiss={onDismissJoinExistingCallModal}
       />
+      <CallPopups client={client} currentCalls={currentRooms} />
     </>
   );
 };
