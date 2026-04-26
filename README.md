@@ -45,6 +45,12 @@ different Matrix server.
   and revokes OIDC tokens during logout when the issuer advertises revocation.
 - The app accepts OIDC static-client and dynamic-registration metadata through
   `config.json`.
+- Room links include `viaServers` join hints derived from the Matrix room ID so
+  federated users can join rooms hosted on `fob.wtf` through their own
+  homeserver.
+- The authenticated home page shows call pop-ups for active MatrixRTC sessions
+  and incoming ring notifications. Current-call pop-ups can be joined or
+  dismissed locally; incoming-call pop-ups can be answered or declined.
 
 For local development against the fork homeserver, serve this runtime config as
 `public/config.json`:
