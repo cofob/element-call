@@ -57,7 +57,7 @@ export type AuthenticatedClient = {
   client: MatrixClient;
   isPasswordlessUser: boolean;
   changePassword: (password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 export type ErrorState = {
@@ -94,7 +94,7 @@ export function useClientLegacy(): {
   passwordlessUser: boolean;
   loading: boolean;
   authenticated: boolean;
-  logout?: () => void;
+  logout?: () => Promise<void>;
   error?: Error;
 } {
   const clientState = useClientState();
@@ -223,15 +223,18 @@ export const ClientProvider: FC<Props> = ({ children }) => {
     }
 
     const session = loadSession();
+    client.stopClient();
+
     try {
       if (session?.oidc_issuer) {
         await revokeOidcSession(session);
       } else {
-        await client.logout(true);
+        await client.logout();
       }
     } catch (error) {
       logger.error("Failed to revoke or log out the current session", error);
     }
+
     await client.clearStores();
     clearSession();
     setInitClientState(null);

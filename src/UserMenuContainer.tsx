@@ -43,7 +43,9 @@ export const UserMenuContainer: FC<Props> = ({ preventNavigation = false }) => {
           setSettingsModalOpen(true);
           break;
         case "logout":
-          logout?.();
+          logout?.().catch((error) =>
+            logger.error("Failed to log out", error),
+          );
           break;
         case "login":
           navigate("/login", { state: { from: location } })?.catch((error) =>
