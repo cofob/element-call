@@ -17,7 +17,12 @@ import {
 import { type MatrixError } from "matrix-js-sdk";
 import { logger } from "matrix-js-sdk/lib/logger";
 import { Trans, useTranslation } from "react-i18next";
-import { Navigate, useLocation } from "react-router-dom";
+import {
+  type Location,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import {
   CheckIcon,
   UnknownSolidIcon,
@@ -41,11 +46,57 @@ import { MuteStates } from "../state/MuteStates";
 import { ObservableScope } from "../state/ObservableScope";
 import { calculateInitialMuteState } from "../state/initialMuteState.ts";
 
+function locationHasViaServers(search: string, hash: string): boolean {
+  if (new URLSearchParams(search).has("viaServers")) return true;
+
+  const fragmentQueryStart = hash.indexOf("?");
+  if (fragmentQueryStart === -1) return false;
+
+  return new URLSearchParams(hash.substring(fragmentQueryStart)).has(
+    "viaServers",
+  );
+}
+
+function addViaServersToLocation(
+  location: Location,
+  viaServers: string[],
+): { pathname: string; search: string; hash: string } | null {
+  const addViaServers = (params: URLSearchParams): URLSearchParams => {
+    const nextParams = new URLSearchParams(params);
+    viaServers.forEach((server) => nextParams.append("viaServers", server));
+    return nextParams;
+  };
+
+  const fragmentQueryStart = location.hash.indexOf("?");
+  if (fragmentQueryStart !== -1) {
+    const fragmentParams = new URLSearchParams(
+      location.hash.substring(fragmentQueryStart),
+    );
+    if (fragmentParams.has("roomId")) {
+      return {
+        pathname: location.pathname,
+        search: location.search,
+        hash: `${location.hash.substring(0, fragmentQueryStart)}?${addViaServers(fragmentParams).toString()}`,
+      };
+    }
+  }
+
+  const queryParams = new URLSearchParams(location.search);
+  if (!queryParams.has("roomId")) return null;
+
+  return {
+    pathname: location.pathname,
+    search: `?${addViaServers(queryParams).toString()}`,
+    hash: location.hash,
+  };
+}
+
 export const RoomPage: FC = (): ReactNode => {
   const urlParams = useUrlParams();
   const { confineToRoom, preload, header, skipLobby } = urlParams;
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const { roomAlias, roomId, viaServers } = useRoomIdentifier();
 
   const roomIdOrAlias = roomId ?? roomAlias;
@@ -61,6 +112,24 @@ export const RoomPage: FC = (): ReactNode => {
 
   const devices = useMediaDevices();
   const [muteStates, setMuteStates] = useState<MuteStates | null>(null);
+
+  useEffect(() => {
+    if (
+      widget !== null ||
+      roomId === null ||
+      viaServers.length === 0 ||
+      locationHasViaServers(location.search, location.hash)
+    ) {
+      return;
+    }
+
+    const nextLocation = addViaServersToLocation(location, viaServers);
+    if (nextLocation === null) return;
+
+    navigate(nextLocation, { replace: true })?.catch((error) => {
+      logger.error("Failed to add viaServers to room URL", error);
+    });
+  }, [location, navigate, roomId, viaServers]);
 
   useEffect(() => {
     const scope = new ObservableScope();

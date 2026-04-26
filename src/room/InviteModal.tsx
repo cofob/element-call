@@ -23,6 +23,7 @@ import copy from "copy-to-clipboard";
 
 import { Modal } from "../Modal";
 import { getAbsoluteRoomUrl } from "../utils/matrix";
+import { getViaServersForRoomId } from "../UrlParams";
 import styles from "./InviteModal.module.css";
 import { Toast } from "../Toast";
 import { useRoomEncryptionSystem } from "../e2ee/sharedKeyManagement";
@@ -37,10 +38,14 @@ interface Props {
 export const InviteModal: FC<Props> = ({ room, open, onDismiss }) => {
   const { t } = useTranslation();
   const e2eeSystem = useRoomEncryptionSystem(room.roomId);
+  const viaServers = useMemo(
+    () => getViaServersForRoomId(room.roomId),
+    [room.roomId],
+  );
 
   const url = useMemo(
-    () => getAbsoluteRoomUrl(room.roomId, e2eeSystem, room.name),
-    [e2eeSystem, room.name, room.roomId],
+    () => getAbsoluteRoomUrl(room.roomId, e2eeSystem, room.name, viaServers),
+    [e2eeSystem, room.name, room.roomId, viaServers],
   );
   const [toastOpen, setToastOpen] = useState(false);
   const onToastDismiss = useCallback(() => setToastOpen(false), [setToastOpen]);

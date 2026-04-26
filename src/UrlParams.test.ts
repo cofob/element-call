@@ -15,7 +15,10 @@ import {
   computeUrlParams,
   HeaderStyle,
   getUrlParams,
+  generateUrlSearchParams,
+  extractViaServerFromRoomId,
 } from "../src/UrlParams";
+import { E2eeType } from "../src/e2ee/e2eeType";
 
 const ROOM_NAME = "roomNameHere";
 const ROOM_ID = "!d45f138fsd";
@@ -95,6 +98,26 @@ describe("UrlParams", () => {
           "",
         ).roomId,
       ).toBe(ROOM_ID);
+    });
+
+    it("(roomId extracts viaServers from the room server name)", () => {
+      expect(
+        getRoomIdentifierFromUrl(
+          "/room/",
+          "",
+          "#/test?roomId=%21tSweivPVPCaoVKoMQh%3Afob.wtf",
+        ).viaServers,
+      ).toEqual(["fob.wtf"]);
+    });
+
+    it("(explicit viaServers override the roomId server name)", () => {
+      expect(
+        getRoomIdentifierFromUrl(
+          "/room/",
+          "",
+          "#/test?roomId=%21tSweivPVPCaoVKoMQh%3Afob.wtf&viaServers=matrix.org",
+        ).viaServers,
+      ).toEqual(["matrix.org"]);
     });
   });
 
@@ -198,6 +221,41 @@ describe("UrlParams", () => {
 
     it("is parsed in SPA mode", () => {
       expect(computeUrlParams("?viaServers=asd").viaServers).toBe("asd");
+    });
+
+    it("falls back to the roomId server name in SPA mode", () => {
+      expect(
+        computeUrlParams("?roomId=!tSweivPVPCaoVKoMQh:fob.wtf").viaServers,
+      ).toBe("fob.wtf");
+    });
+  });
+
+  describe("extractViaServerFromRoomId", () => {
+    it("extracts the server name from a fully qualified room ID", () => {
+      expect(extractViaServerFromRoomId("!abc:fob.wtf")).toBe("fob.wtf");
+    });
+
+    it("returns null for invalid room IDs", () => {
+      expect(extractViaServerFromRoomId("!abc")).toBeNull();
+      expect(extractViaServerFromRoomId("#room:fob.wtf")).toBeNull();
+    });
+  });
+
+  describe("generateUrlSearchParams", () => {
+    it("adds viaServers from the roomId server name", () => {
+      expect(
+        generateUrlSearchParams("!abc:fob.wtf", {
+          kind: E2eeType.NONE,
+        }).toString(),
+      ).toBe("roomId=%21abc%3Afob.wtf&viaServers=fob.wtf");
+    });
+
+    it("keeps explicit viaServers", () => {
+      expect(
+        generateUrlSearchParams("!abc:fob.wtf", { kind: E2eeType.NONE }, [
+          "matrix.org",
+        ]).toString(),
+      ).toBe("roomId=%21abc%3Afob.wtf&viaServers=matrix.org");
     });
   });
 

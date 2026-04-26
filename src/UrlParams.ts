@@ -26,6 +26,24 @@ interface RoomIdentifier {
   viaServers: string[];
 }
 
+export function extractViaServerFromRoomId(
+  roomId: string | null,
+): string | null {
+  if (!roomId?.startsWith("!")) return null;
+
+  const separatorIndex = roomId.indexOf(":");
+  if (separatorIndex === -1 || separatorIndex === roomId.length - 1) {
+    return null;
+  }
+
+  return roomId.substring(separatorIndex + 1);
+}
+
+export function getViaServersForRoomId(roomId: string | null): string[] {
+  const viaServer = extractViaServerFromRoomId(roomId);
+  return viaServer === null ? [] : [viaServer];
+}
+
 export enum UserIntent {
   StartNewCall = "start_call",
   JoinExistingCall = "join_existing",
@@ -343,6 +361,7 @@ export const computeUrlParams = (search = "", hash = ""): UrlParams => {
   const parser = new ParamParser(search, hash);
 
   const fontScale = parseFloat(parser.getParam("fontScale") ?? "");
+  const roomId = parser.getParam("roomId");
 
   const widgetId = parser.getParam("widgetId");
   const parentUrl = parser.getParam("parentUrl");
@@ -441,7 +460,7 @@ export const computeUrlParams = (search = "", hash = ""): UrlParams => {
     // NB. we don't validate roomId here as we do in getRoomIdentifierFromUrl:
     // what would we do if it were invalid? If the widget API says that's what
     // the room ID is, then that's what it is.
-    roomId: parser.getParam("roomId"),
+    roomId,
     password: parser.getParam("password"),
     userId: isWidget ? parser.getParam("userId") : null,
     displayName: parser.getParam("displayName"),
@@ -451,7 +470,9 @@ export const computeUrlParams = (search = "", hash = ""): UrlParams => {
     fonts: parser.getAllParams("font"),
     fontScale: Number.isNaN(fontScale) ? null : fontScale,
     theme: parser.getParam("theme"),
-    viaServers: !isWidget ? parser.getParam("viaServers") : null,
+    viaServers: !isWidget
+      ? (parser.getParam("viaServers") ?? extractViaServerFromRoomId(roomId))
+      : null,
     homeserver: !isWidget ? parser.getParam("homeserver") : null,
     posthogApiHost: parser.getParam("posthogApiHost"),
     posthogApiKey: parser.getParam("posthogApiKey"),
@@ -573,10 +594,15 @@ export function getRoomIdentifierFromUrl(
     }
   }
 
+  const explicitViaServers = parser.getAllParams("viaServers");
+
   return {
     roomAlias,
     roomId,
-    viaServers: parser.getAllParams("viaServers"),
+    viaServers:
+      explicitViaServers.length > 0
+        ? explicitViaServers
+        : getViaServersForRoomId(roomId),
   };
 }
 
@@ -612,7 +638,11 @@ export function generateUrlSearchParams(
       break;
   }
   params.set("roomId", roomId);
-  viaServers?.forEach((s) => params.set("viaServers", s));
+  const effectiveViaServers =
+    viaServers && viaServers.length > 0
+      ? viaServers
+      : getViaServersForRoomId(roomId);
+  effectiveViaServers.forEach((s) => params.append("viaServers", s));
 
   return params;
 }
