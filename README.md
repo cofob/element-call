@@ -26,6 +26,37 @@ with **[LiveKit](https://livekit.io/)** as its backend.
 You can find the latest development version continuously deployed to
 [call.element.dev](https://call.element.dev/).
 
+## Fork Changes
+
+This fork requires authenticated Matrix accounts and uses Matrix Authentication
+Service (MAS) delegated authentication for standalone access.
+
+- Guest and passwordless access are disabled. Stored passwordless sessions are
+  cleared instead of being restored.
+- The standalone `/login` and `/register` pages have been removed. Those routes
+  now start the MAS/OIDC authorization flow; registration requests pass the MAS
+  account-creation prompt.
+- MAS callback handling stores the Matrix access token together with OIDC
+  refresh metadata, refreshes delegated-auth sessions through the Matrix JS SDK,
+  and revokes OIDC tokens during logout when the issuer advertises revocation.
+- The app accepts OIDC static-client and dynamic-registration metadata through
+  `config.json`.
+
+For local development against the fork homeserver, serve this runtime config as
+`public/config.json`:
+
+```json
+{
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://chat-global.fob.wtf",
+      "server_name": "fob.wtf"
+    }
+  },
+  "disable_custom_urls": true
+}
+```
+
 > [!NOTE]
 > For prior version of the Element Call that relied solely on full-mesh logic,
 > check [`full-mesh`](https://github.com/element-hq/element-call/tree/full-mesh)

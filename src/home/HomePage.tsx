@@ -10,10 +10,10 @@ import { type FC } from "react";
 
 import { useClientState } from "../ClientContext";
 import { ErrorPage, LoadingPage } from "../FullScreenView";
-import { UnauthenticatedView } from "./UnauthenticatedView";
 import { RegisteredView } from "./RegisteredView";
 import { usePageTitle } from "../usePageTitle";
 import { widget } from "../widget.ts";
+import { MasRedirectPage } from "../auth/MasRedirectPage";
 
 export const HomePage: FC = () => {
   const { t } = useTranslation();
@@ -29,7 +29,7 @@ export const HomePage: FC = () => {
     return clientState.authenticated ? (
       <RegisteredView client={clientState.authenticated.client} />
     ) : (
-      <UnauthenticatedView />
+      <MasRedirectPage action="login" />
     );
   }
 };

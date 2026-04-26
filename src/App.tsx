@@ -13,14 +13,13 @@ import {
   useMemo,
   useState,
 } from "react";
-import { BrowserRouter, Route, useLocation, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { TooltipProvider } from "@vector-im/compound-web";
 import { logger } from "matrix-js-sdk/lib/logger";
 
 import { HomePage } from "./home/HomePage";
-import { LoginPage } from "./auth/LoginPage";
-import { RegisterPage } from "./auth/RegisterPage";
+import { MasRedirectPage } from "./auth/MasRedirectPage";
 import { RoomPage } from "./room/RoomPage";
 import { ClientProvider } from "./ClientContext";
 import { ErrorPage, LoadingPage } from "./FullScreenView";
@@ -40,17 +39,15 @@ interface SimpleProviderProps {
 }
 
 const BackgroundProvider: FC<SimpleProviderProps> = ({ children }) => {
-  const { pathname } = useLocation();
-
   useEffect(() => {
     let backgroundImage = "";
-    if (!["/login", "/register"].includes(pathname) && !widget) {
+    if (!widget) {
       backgroundImage = "var(--background-gradient)";
     }
 
     document.getElementsByTagName("body")[0].style.backgroundImage =
       backgroundImage;
-  }, [pathname]);
+  }, []);
 
   return <>{children}</>;
 };
@@ -87,8 +84,14 @@ export const App: FC<Props> = ({ vm }) => {
           >
             <Routes>
               <SentryRoute path="/" element={<HomePage />} />
-              <SentryRoute path="/login" element={<LoginPage />} />
-              <SentryRoute path="/register" element={<RegisterPage />} />
+              <SentryRoute
+                path="/login"
+                element={<MasRedirectPage action="login" />}
+              />
+              <SentryRoute
+                path="/register"
+                element={<MasRedirectPage action="register" />}
+              />
               <SentryRoute path="*" element={<RoomPage />} />
             </Routes>
           </Sentry.ErrorBoundary>

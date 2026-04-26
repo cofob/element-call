@@ -85,6 +85,27 @@ export interface ConfigOptions {
    */
   ssla?: string;
 
+  /**
+   * Configuration for OIDC issuers where a static client_id has been issued for the app.
+   * Otherwise dynamic client registration is attempted.
+   *
+   * The issuer URL must have a trailing slash.
+   */
+  oidc_static_clients?: {
+    [issuer: string]: { client_id: string };
+  };
+
+  /**
+   * Configuration for OIDC dynamic registration where a static OIDC client is not configured.
+   */
+  oidc_metadata?: {
+    client_uri?: string;
+    logo_uri?: string;
+    tos_uri?: string;
+    policy_uri?: string;
+    contacts?: string[];
+  };
+
   media_devices?: {
     /**
      * Defines whether participants should start with audio enabled by default.

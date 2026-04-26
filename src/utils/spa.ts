@@ -11,10 +11,12 @@ import { logger } from "matrix-js-sdk/lib/logger";
 import { Config } from "../config/Config";
 import { fallbackICEServerAllowed, initClient } from "./matrix";
 import type { InitResult, Session } from "../ClientContext";
+import { createOidcTokenRefreshFunction } from "../auth/mas";
 
 export async function initSPA(
   loadSession: () => Session | undefined,
   clearSession: () => void,
+  saveSession: (session: Session) => void,
 ): Promise<InitResult | null> {
   // We're running as a standalone application
   try {
@@ -24,18 +26,38 @@ export async function initSPA(
       return null;
     }
 
+    if (session.passwordlessUser) {
+      logger.log("Passwordless guest sessions are disabled; clearing session");
+      clearSession();
+      return null;
+    }
+
     logger.log("Using a standalone client");
 
     /* eslint-disable camelcase */
-    const { user_id, device_id, access_token, passwordlessUser } = session;
+    const {
+      user_id,
+      device_id,
+      access_token,
+      passwordlessUser,
+      refresh_token,
+    } = session;
     const initClientParams: ICreateClientOpts = {
       baseUrl: Config.defaultHomeserverUrl()!,
       accessToken: access_token,
+      refreshToken: refresh_token,
       userId: user_id,
       deviceId: device_id,
       fallbackICEServerAllowed,
       livekitServiceURL: Config.get().livekit?.livekit_service_url,
     };
+    const tokenRefreshFunction = createOidcTokenRefreshFunction(
+      session,
+      saveSession,
+    );
+    if (tokenRefreshFunction) {
+      initClientParams.tokenRefreshFunction = tokenRefreshFunction;
+    }
 
     try {
       const client = await initClient(initClientParams, true);

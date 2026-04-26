@@ -30,6 +30,7 @@ import {
 } from "./analytics/PosthogAnalytics";
 import { useEventTarget } from "./useEvents";
 import { OpenElsewhereError } from "./RichError";
+import { completeMasLoginFromUrl, revokeOidcSession } from "./auth/mas";
 
 declare global {
   interface Window {
@@ -143,6 +144,7 @@ export const ClientProvider: FC<Props> = ({ children }) => {
   const [initClientState, setInitClientState] = useState<
     InitResult | null | undefined
   >(undefined);
+  const [initError, setInitError] = useState<Error>();
 
   const initializing = useRef(false);
   useEffect(() => {
@@ -158,7 +160,10 @@ export const ClientProvider: FC<Props> = ({ children }) => {
         if (PosthogAnalytics.instance.isEnabled())
           PosthogAnalytics.instance.startListeningToSettingsChanges();
       })
-      .catch((err) => logger.error(err))
+      .catch((err) => {
+        logger.error(err);
+        setInitError(err instanceof Error ? err : new Error(String(err)));
+      })
       .finally(() => (initializing.current = false));
   }, []);
 
@@ -217,7 +222,16 @@ export const ClientProvider: FC<Props> = ({ children }) => {
       return;
     }
 
-    await client.logout(true);
+    const session = loadSession();
+    try {
+      if (session?.oidc_issuer) {
+        await revokeOidcSession(session);
+      } else {
+        await client.logout(true);
+      }
+    } catch (error) {
+      logger.error("Failed to revoke or log out the current session", error);
+    }
     await client.clearStores();
     clearSession();
     setInitClientState(null);
@@ -254,6 +268,10 @@ export const ClientProvider: FC<Props> = ({ children }) => {
       return { state: "error", error: alreadyOpenedErr };
     }
 
+    if (initError) {
+      return { state: "error", error: initError };
+    }
+
     if (initClientState === undefined) return undefined;
 
     const authenticated =
@@ -278,6 +296,7 @@ export const ClientProvider: FC<Props> = ({ children }) => {
   }, [
     alreadyOpenedErr,
     changePassword,
+    initError,
     initClientState,
     logout,
     setClient,
@@ -363,15 +382,20 @@ async function loadClient(): Promise<InitResult | null> {
     };
   } else {
     const { initSPA } = await import("./utils/spa");
-    return initSPA(loadSession, clearSession);
+    await completeMasLoginFromUrl(saveSession);
+    return initSPA(loadSession, clearSession, saveSession);
   }
 }
 
 export interface Session {
   user_id: string;
-  device_id: string;
+  device_id?: string;
   access_token: string;
   passwordlessUser: boolean;
+  refresh_token?: string;
+  id_token?: string;
+  oidc_client_id?: string;
+  oidc_issuer?: string;
   tempPassword?: string;
 }
 
@@ -384,7 +408,8 @@ const loadSession = (): Session | undefined => {
     return undefined;
   }
 
-  return JSON.parse(data);
+  const session = JSON.parse(data) as Session;
+  return { ...session, passwordlessUser: session.passwordlessUser ?? false };
 };
 
 const clientIsDisconnected = (

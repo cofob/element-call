@@ -24,10 +24,8 @@ import {
 
 import { useClientLegacy } from "../ClientContext";
 import { ErrorPage, FullScreenView, LoadingPage } from "../FullScreenView";
-import { RoomAuthView } from "./RoomAuthView";
 import { GroupCallView } from "./GroupCallView";
 import { useRoomIdentifier, useUrlParams } from "../UrlParams";
-import { useRegisterPasswordlessUser } from "../auth/useRegisterPasswordlessUser";
 import { HomePage } from "../home/HomePage";
 import { widget } from "../widget";
 import { CallTerminatedMessage, useLoadGroupCall } from "./useLoadGroupCall";
@@ -41,10 +39,11 @@ import { useMediaDevices } from "../MediaDevicesContext";
 import { MuteStates } from "../state/MuteStates";
 import { ObservableScope } from "../state/ObservableScope";
 import { calculateInitialMuteState } from "../state/initialMuteState.ts";
+import { MasRedirectPage } from "../auth/MasRedirectPage";
 
 export const RoomPage: FC = (): ReactNode => {
   const urlParams = useUrlParams();
-  const { confineToRoom, preload, header, displayName, skipLobby } = urlParams;
+  const { confineToRoom, preload, header, skipLobby } = urlParams;
   const { t } = useTranslation();
   const { roomAlias, roomId, viaServers } = useRoomIdentifier();
 
@@ -53,11 +52,7 @@ export const RoomPage: FC = (): ReactNode => {
     logger.error("No room specified");
   }
 
-  const { registerPasswordlessUser } = useRegisterPasswordlessUser();
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const { loading, authenticated, client, error, passwordlessUser } =
-    useClientLegacy();
+  const { loading, client, error, passwordlessUser } = useClientLegacy();
   const { avatarUrl, displayName: userDisplayName } = useProfile(client);
 
   const groupCallState = useLoadGroupCall(client, roomIdOrAlias, viaServers);
@@ -81,27 +76,6 @@ export const RoomPage: FC = (): ReactNode => {
     );
     return (): void => scope.end();
   }, [devices, urlParams]);
-
-  useEffect(() => {
-    // If we've finished loading, are not already authed and we've been given a display name as
-    // a URL param, automatically register a passwordless user
-    if (!loading && !authenticated && displayName && !widget) {
-      setIsRegistering(true);
-      registerPasswordlessUser(displayName)
-        .catch((e) => {
-          logger.error("Failed to register passwordless user", e);
-        })
-        .finally(() => {
-          setIsRegistering(false);
-        });
-    }
-  }, [
-    loading,
-    authenticated,
-    displayName,
-    setIsRegistering,
-    registerPasswordlessUser,
-  ]);
 
   const [optInAnalytics, setOptInAnalytics] = useOptInAnalytics();
   useEffect(() => {
@@ -237,9 +211,9 @@ export const RoomPage: FC = (): ReactNode => {
     }
   };
 
-  if (loading || isRegistering) return <LoadingPage />;
+  if (loading) return <LoadingPage />;
   if (error) return <ErrorPage widget={widget} error={error} />;
-  if (!client) return <RoomAuthView />;
+  if (!client) return <MasRedirectPage action="login" />;
   // TODO: This doesn't belong here, the app routes need to be reworked
   if (!roomIdOrAlias) return <HomePage />;
   return groupCallView();

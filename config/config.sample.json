@@ -5,6 +5,17 @@
       "server_name": "mydomain.com"
     }
   },
+  "oidc_static_clients": {
+    "https://auth.mydomain.com/": {
+      "client_id": "element-call"
+    }
+  },
+  "oidc_metadata": {
+    "client_uri": "https://call.mydomain.com",
+    "logo_uri": "https://call.mydomain.com/logo.svg",
+    "tos_uri": "https://static.element.io/legal/element-software-and-services-license-agreement-uk-1.pdf",
+    "policy_uri": "https://element.io/privacy"
+  },
   "livekit": {
     "livekit_service_url": "https://livekit-jwt.mydomain.com"
   },
