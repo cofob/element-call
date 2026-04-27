@@ -167,7 +167,7 @@ export const LoginPage: FC = () => {
   return (
     <div className={commonStyles.container}>
       <main className={commonStyles.main}>
-        <HeaderLogo className={commonStyles.logo} />
+        <HeaderLogo className={styles.logo} />
         <div className={styles.content}>
           <Heading size="lg" weight="semibold" className={styles.headline}>
             Sign in to Element Call
@@ -189,52 +189,53 @@ export const LoginPage: FC = () => {
                 >
                   Continue with fob.wtf
                 </Button>
-                <Button
-                  type="button"
-                  kind="secondary"
-                  size="lg"
-                  onClick={(): void => setServerFormOpen(true)}
-                  disabled={loading}
-                  data-testid="login_custom_server"
-                >
-                  Use another server
-                </Button>
-              </div>
-
-              {serverFormOpen && (
-                <Form className={styles.form} onSubmit={onDiscoverCustomServer}>
-                  <FieldRow>
-                    <InputField
-                      id="serverName"
-                      name="serverName"
-                      label="Server name"
-                      placeholder="matrix.org"
-                      type="text"
-                      required
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="none"
-                      disabled={loading}
-                      data-testid="login_server_name"
-                    />
-                  </FieldRow>
-                  {error && (
-                    <FieldRow>
-                      <ErrorMessage error={error} />
+                {serverFormOpen ? (
+                  <Form
+                    className={styles.serverForm}
+                    onSubmit={onDiscoverCustomServer}
+                  >
+                    <FieldRow className={styles.serverRow}>
+                      <InputField
+                        id="serverName"
+                        name="serverName"
+                        label="Server name"
+                        placeholder="matrix.org"
+                        type="text"
+                        required
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        disabled={loading}
+                        data-testid="login_server_name"
+                      />
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={loading}
+                        data-testid="login_continue_custom"
+                      >
+                        {loading ? "Checking server" : "Continue"}
+                      </Button>
                     </FieldRow>
-                  )}
-                  <FieldRow>
-                    <Button
-                      type="submit"
-                      size="lg"
-                      disabled={loading}
-                      data-testid="login_continue_custom"
-                    >
-                      {loading ? "Checking server" : "Continue"}
-                    </Button>
-                  </FieldRow>
-                </Form>
-              )}
+                    {error && (
+                      <FieldRow className={styles.serverError}>
+                        <ErrorMessage error={error} />
+                      </FieldRow>
+                    )}
+                  </Form>
+                ) : (
+                  <Button
+                    type="button"
+                    kind="secondary"
+                    size="lg"
+                    onClick={(): void => setServerFormOpen(true)}
+                    disabled={loading}
+                    data-testid="login_custom_server"
+                  >
+                    Use another server
+                  </Button>
+                )}
+              </div>
             </>
           )}
 

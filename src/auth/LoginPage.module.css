@@ -7,7 +7,13 @@ Please see LICENSE in the repository root for full details.
 
 .content {
   width: min(100%, 420px);
+  box-sizing: border-box;
   padding: 0 24px;
+}
+
+.logo {
+  display: flex;
+  margin-bottom: 54px;
 }
 
 .headline {
@@ -38,4 +44,39 @@ Please see LICENSE in the repository root for full details.
 
 .form > * + * {
   margin-bottom: 24px;
+}
+
+.serverForm {
+  width: 100%;
+}
+
+.serverRow {
+  margin-bottom: 0;
+}
+
+.serverRow > button {
+  flex-shrink: 0;
+}
+
+.serverError {
+  align-items: flex-start;
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .content {
+    padding: 0 16px;
+  }
+
+  .serverRow {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .serverRow > * {
+    width: 100%;
+    margin-right: 0;
+  }
 }
