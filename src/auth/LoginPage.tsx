@@ -217,11 +217,6 @@ export const LoginPage: FC = () => {
                         {loading ? "Checking server" : "Continue"}
                       </Button>
                     </FieldRow>
-                    {error && (
-                      <FieldRow className={styles.serverError}>
-                        <ErrorMessage error={error} />
-                      </FieldRow>
-                    )}
                   </Form>
                 ) : (
                   <Button
@@ -236,6 +231,11 @@ export const LoginPage: FC = () => {
                   </Button>
                 )}
               </div>
+              {error && (
+                <FieldRow className={styles.loginError}>
+                  <ErrorMessage error={error} />
+                </FieldRow>
+              )}
             </>
           )}
 

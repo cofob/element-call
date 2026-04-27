@@ -19,7 +19,7 @@ interface FormProps {
   ref?: Ref<HTMLFormElement>;
   className: string;
   onSubmit: FormEventHandler<HTMLFormElement>;
-  children: ReactNode[];
+  children: ReactNode;
 }
 
 export const Form: FC<FormProps> = ({ ref, children, className, onSubmit }) => {

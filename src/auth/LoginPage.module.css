@@ -58,7 +58,7 @@ Please see LICENSE in the repository root for full details.
   flex-shrink: 0;
 }
 
-.serverError {
+.loginError {
   align-items: flex-start;
   margin-top: 12px;
   margin-bottom: 0;
